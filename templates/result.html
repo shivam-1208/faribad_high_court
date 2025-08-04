@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Case Result</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="p-4">
+    <h2>Case Details</h2>
+    <ul class="list-group">
+        <li class="list-group-item"><strong>Parties:</strong> {{ result.parties }}</li>
+        <li class="list-group-item"><strong>Filing Date:</strong> {{ result.filing_date }}</li>
+        <li class="list-group-item"><strong>Next Hearing Date:</strong> {{ result.next_hearing }}</li>
+        <li class="list-group-item">
+            <strong>Latest Order PDF:</strong>
+            {% if result.latest_pdf %}
+                <a href="{{ result.latest_pdf }}" target="_blank">Download</a>
+            {% else %}
+                Not available
+            {% endif %}
+        </li>
+    </ul>
+    <br>
+    <a href="/" class="btn btn-secondary">Search Again</a>
+</body>
+</html>
