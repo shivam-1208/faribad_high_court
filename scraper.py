@@ -1,34 +1,37 @@
-import requests
+from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
 
-def fetch_case_data(case_type, case_number, filing_year):
-    url = "https://services.ecourts.gov.in/ecourtindia_v6/?p=casestatus/index&state_cd=06&dist_cd=6"
+def run():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)  # 👁️ Show browser
+        page = browser.new_page()
+        page.goto("https://faridabad.dcourts.gov.in/case-status-search-by-case-type/")
 
-    payload = {
-        'state_cd': '06',
-        'dist_cd': '6',
-        'court_code': '1',
-        'court_complex_code': '1',
-        'case_type': case_type,
-        'case_no': case_number,
-        'case_year': filing_year
-    }
+        # Fill out form fields
+        page.select_option("select[name='court_complex_code']", "1")  # Example: Court Complex
+        page.select_option("select[name='case_type']", "CP")          # Example: Case Type
+        page.select_option("select[name='case_status']", "Pending")  # Status
+        page.fill("input[name='case_year']", "2022")                 # Year
 
-    session = requests.Session()
-    response = session.post(url, data=payload)
-    if not response.ok:
-        raise Exception("Failed to fetch data from eCourts.")
+        # 🔔 Pause for manual CAPTCHA entry
+        input("➡️ Please fill in the CAPTCHA in browser and click 'Search'. Then press ENTER here to continue...")
 
-    soup = BeautifulSoup(response.text, 'html.parser')
-    parties = soup.find("td", text="Petitioner and Advocate")
-    if not parties:
-        raise Exception("Case not found or structure changed.")
+        # Wait for table to load
+        page.wait_for_selector("table")  # Adjust if needed
 
-    result = {
-        "parties": parties.find_next("td").get_text(strip=True),
-        "filing_date": "N/A",
-        "next_hearing": "N/A",
-        "latest_pdf": None
-    }
+        # Get and parse HTML
+        html = page.content()
+        soup = BeautifulSoup(html, "html.parser")
+        results = soup.find("table")
 
-    return result, response.text
+        if results:
+            print("\n✅ Results Table Found:")
+            print(results.get_text())
+        else:
+            print("❌ No results found or table not located.")
+
+        browser.close()
+
+if __name__ == "__main__":
+    run()
+
